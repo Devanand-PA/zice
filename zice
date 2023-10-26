@@ -1,0 +1,363 @@
+#!/bin/env python3
+import pygame
+import random
+import time
+
+#######[ Init ] #########################
+pygame.init()
+width , height = 600 , 600
+screen = pygame.display.set_mode((width , height))
+pygame.display.set_caption("zice")
+mute = True
+###########################################
+
+#############[Game Intermedietes]#######################
+curr_sound = ""
+ctl_pressed = False
+m_pressed = False
+#####################################
+
+#############[Game Characteristics ]###############################
+
+
+Kindness = 0
+Confidence = 0
+Jealousy = 0
+Intimacy = 0
+
+def ch_intimacy(a) :
+    global Intimacy
+    Intimacy += a
+
+def ch_jealousy(a) :
+    global Jealousy
+    Jealousy += a
+
+def ch_confidence(a) :
+    global Confidence
+    Confidence += a
+
+def ch_kindness(a) :
+    global Kindness
+    Kindness += a
+
+
+##########################################################
+
+########################[ Functions and classes]##############################
+blank_function = lambda : print("")
+class Button:
+    def __init__(self, x, y, width, height, color, text, text_color, click_action):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.color = color
+        self.text = text
+        self.text_color = text_color
+        self.selected = False
+        self.click_action = click_action
+        self.outline_color = (50, 50, 50)  # Default outline color
+
+    def draw(self, screen):
+        # Draw the button's outline
+        pygame.draw.rect(screen, self.color if not self.selected else (255, 255, 255), self.rect)
+        pygame.draw.rect(screen, self.outline_color, self.rect, 3)
+        
+
+        if self.text:
+            font = pygame.font.Font(None, 36)
+
+            # Split the text into lines
+            lines = self.text.split("\n")
+            
+            y_offset = 0
+            for line in lines:
+                text_surface = font.render(line, True, self.text_color)
+                text_rect = text_surface.get_rect()
+                text_rect.centerx = self.rect.centerx
+                text_rect.centery = self.rect.centery + y_offset
+                screen.blit(text_surface, text_rect)
+                y_offset += text_rect.height
+
+
+class Button_without_outline :
+    def __init__(self,x,y,width,height , color , text , text_color , click_action) :
+        self.rect = pygame.Rect(x,y,width,height)
+        self.color = color
+        self.text = text
+        self.text_color = text_color
+        self.selected = False
+        self.click_action = click_action
+
+    def draw(self, screen , outline=None):
+        if outline :
+            pygame.draw.rect(screen , outline , self.rect , 0)
+        
+        if not self.selected :
+            pygame.draw.rect(screen , self.color ,self.rect)
+        else :
+            pygame.draw.rect(screen , (255,255,255) , self.rect)
+        
+        if self.text:
+            font = pygame.font.Font(None, 36)
+
+            # Split the text into lines
+            lines = self.text.split("\n")
+            
+            y_offset = 0
+            for line in lines:
+                text_surface = font.render(line, True, self.text_color)
+                text_rect = text_surface.get_rect()
+                text_rect.centerx = self.rect.centerx
+                text_rect.centery = self.rect.centery + y_offset
+                screen.blit(text_surface, text_rect)
+                y_offset += text_rect.height
+
+
+class Stage :
+    def __init__(self, buttons , background_image) :
+        self.buttons = buttons
+        self.background_image = background_image
+    def set_background(self) :
+        background = pygame.image.load(self.background_image)
+        background_rect = background.get_rect()
+        background_rect.topleft = (0, 0)
+        screen.blit(background, background_rect)
+# Function to change buttons
+def change_choice(button_list,background_image) :
+    global current_stage
+    current_stage = Stage(button_list,background_image)
+
+def quit_game() :
+    pygame.quit()
+
+def play_sound(audiofile):
+    global mute
+    global curr_sound
+    if mute == False :
+       sound = pygame.mixer.Sound(audiofile)
+       # Play the sound
+       sound.play()
+       # Wait for the sound to finish (optional)
+       curr_sound = sound
+def say_hi() :
+    hi_list = [ "Hi" , "Hello" , "How are you"  ]
+    random_choice = (random.choice(hi_list))
+    print(random_choice)
+    play_sound("assets/audio/Sepherina/"+random_choice+".mp3")
+
+
+def handle_buttons(stage):
+    global selected_button
+    global mute
+    global m_pressed
+    global ctl_pressed
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return False
+        
+        if event.type == pygame.MOUSEBUTTONDOWN :
+            if event.button == 1:
+                pos = pygame.mouse.get_pos()
+                for i , button in enumerate(stage.buttons):
+                    if button.rect.collidepoint(pos):
+                        button.click_action()
+
+        if event.type == pygame.KEYUP :
+            if event.key == pygame.K_m :
+                m_pressed = False
+            elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL :
+                ctl_pressed = False
+
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP or event.key == pygame.K_LEFT :
+                if type(current_stage.buttons[(selected_button -1 ) % len(stage.buttons)]) == Button :
+                    selected_button = (selected_button -1 ) % len(stage.buttons)
+            elif event.key == pygame.K_DOWN or event.key == pygame.K_RIGHT :
+                if type(current_stage.buttons[(selected_button + 1 ) % len(stage.buttons)]) == Button :
+                    selected_button = (selected_button +1 ) % len(stage.buttons)
+            elif event.key == pygame.K_RETURN:  # Enter key
+                stage.buttons[selected_button].click_action()
+            elif event.key == pygame.K_m :
+                m_pressed = True
+            elif event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL :
+                ctl_pressed = True
+        if m_pressed and ctl_pressed :
+            toggle_mute()
+    return True
+
+
+############################################################
+
+
+###########################[Stage 0]###########################
+def change_to_stage_1() :
+    global current_stage
+    current_stage = stage1
+
+def toggle_mute() :
+    global mutedialogue
+    global mute
+    mute = False if mute == True else True
+
+def MuteButton() :
+    toggle_mute()
+    stage0 = Stage(buttons_stage0 , "assets/images/stages/intro_back_1.jpg")
+    
+
+buttons_stage0 = [
+Button(400, 200, 200, 50, (100,100,100), "Start", (0, 0, 0), change_to_stage_1) ,
+Button(400, 251, 200, 50, (100,100,100), "Hi", (0, 0, 0), say_hi),
+Button(400, 302, 200, 50, (100,100,100), "Mute/Unmute", (0, 0, 0), MuteButton),
+Button(400, 353, 200, 50, (100,100,100), "Exit", (0, 0, 0),quit_game )
+]
+
+
+stage0 = Stage(buttons_stage0 , "assets/images/stages/intro_back_1.jpg")
+##############################################################
+
+
+################[Stage 1]############################
+def custom_action():
+    global buttons_stage1
+    print(buttons_stage1[1].text)
+
+# Function which changes dialogues !!!
+current_people = []
+def chb_st1_1():
+    #global buttons_stage1_1
+    current_images = []
+    
+    change_choice(buttons_stage1_2,stage1_background)
+    image1 = pygame.image.load("assets/images/characters/sepharina_edit/Sepharina_holding_napkin_scaled.png")
+    #image2 = pygame.image.load("assets/images/characters/sepharina_edit/Sepharina_angry.png")
+    current_people.append([image1,200])
+    play_sound("assets/audio/Sepherina/"+text_stage1_2[0]+".mp3")
+    ch_intimacy(1)
+
+buttons_stage1 = [
+    Button(200, 251, 100, 50, (100, 100,100), "Begin", (0, 0, 0), chb_st1_1),
+    Button_without_outline(100, 200, 300, 50, (100, 100, 0), "Stage 1", (0, 0, 0), blank_function) 
+    ]
+
+
+blank_buttons = [Button(0,0,0,0,(0,0,0),"",(0,0,0),blank_function)]
+buttons_stage1_1 = [
+Button_without_outline(200, 200, 200, 100, (255, 0, 255), "Custom 2", (0, 0, 0), custom_action),
+Button_without_outline(400, 200, 200, 100, (0, 255, 255), "Exit", (0, 0, 0), quit_game) 
+    ]
+text_stage1_2 = ["Hello, how are you ?" , "You don't look very good" , "Are you alright ?"]
+text_stage1_2_index= 0
+
+
+def chb_st1_2() :
+    change_choice(buttons_stage1_3,stage1_background)
+    play_sound("assets/audio/Sepherina/"+text_stage1_2[1]+".mp3")
+    ch_intimacy(1)
+
+buttons_stage1_2 = [
+Button_without_outline(50, 500, 300, 50, (100, 100,100), text_stage1_2[0], (0, 0, 0), chb_st1_2),
+]
+
+
+def chb_st1_3() :
+    change_choice(buttons_stage1_4,stage1_background) 
+    play_sound("assets/audio/Sepherina/"+text_stage1_2[2]+".mp3")
+    ch_intimacy(1)
+
+
+buttons_stage1_3 = [
+Button_without_outline(50, 500, 300, 50, (100, 100,100), text_stage1_2[1], (0, 0, 0), chb_st1_3),
+]
+
+def chb_st1_4() :
+    change_choice(buttons_stage1_5, stage1_background)
+    ch_intimacy(1)
+
+
+buttons_stage1_4 = [
+Button_without_outline(50, 500, 300, 50, (100, 100,100), text_stage1_2[2], (0, 0, 0), chb_st1_4),
+]
+
+stage1_5_choice = 0
+def chb_st1_5_a() :
+    global stage1_5_choice
+    change_choice(buttons_stage1_6a_1, stage1_background)
+    stage1_5_choice = 1
+    ch_intimacy(1)
+    ch_confidence(30)
+
+def chb_st1_5_b() :
+    #change_choice(buttons_stage1_6b, stage1_background)
+    ch_intimacy(1)
+    ch_confidence(-30)
+
+def chb_st1_5_c() :
+    #change_choice(buttons_stage1_6c, stage1_background)
+    ch_intimacy(-1)
+    ch_kindness(-20)
+
+buttons_stage1_5 = [
+Button(50, 400, 300, 50, (100, 100,100), "Yes I'm alright", (0, 0, 0), chb_st1_5_a),
+Button(50, 451, 300, 50, (100, 100,100), "Not really", (0, 0, 0), chb_st1_5_b),
+Button(50, 502, 300, 50, (100, 100,100), "Who are you ?", (0, 0, 0), chb_st1_5_c),
+]
+
+#-------------------------[Stage 1.6a]-------------------------------------
+chb_st1_6_a_1 = lambda : change_choice(buttons_stage1_6a_2, stage1_background)
+buttons_stage1_6a_1 = [
+Button_without_outline(450, 200, 100, 200, (100, 100,100), "Hmm... \n really ?", (0, 0, 0), blank_function),
+]
+'''
+chb_st1_6_a_2 = lambda : change_choice(buttons_stage1_6a_3, stage1_background)
+buttons_stage1_6a_2 = [
+Button(50, 500, 400, 50, (100, 100,100), "You passed out in the middle of the street ", (0, 0, 0), chb_st1_6_a_2),
+]
+
+buttons_stage1_6a_3 = [
+Button(50, 500, 400, 50, (100, 100,100), ".. but atleast you think you are alright ", (0, 0, 0), blank_function),
+]
+'''
+#-------------------------------------------------------------------------
+
+
+
+
+stage1_background = "assets/images/stages/stage1/stage1.jpg" 
+
+
+stage1 = Stage(buttons_stage1,stage1_background)
+#####################################################
+
+###############[Game Loop]##########################
+running = True
+selected_button = 0
+current_stage = stage0
+while running :
+    running = handle_buttons(current_stage)
+    screen.fill((0,0,0))
+    current_stage.set_background()
+
+    for image,char_pos in current_people :
+        image1 = pygame.transform.scale(image, (400, 400))
+        #image_rect = image1.get_rect()
+        #image_rect.topleft = (100,100)
+        coord_x , coord_y =  char_pos , 200
+        screen.blit(image1, (coord_x,coord_y))
+
+    for i , button in enumerate(current_stage.buttons):
+        button.selected = (i == selected_button)
+        button.draw(screen)
+    pygame.display.flip()
+    pygame.display.update()
+    if mute == False :
+       try :
+           pygame.time.delay(int(curr_sound.get_length() * 1000))
+       except:
+           curr_sound=""
+    print("Intimacy is :",Intimacy)
+    print("Jealousy is :",Jealousy)
+    print("Confidence is :",Confidence)
+    print("Kindness is :",Kindness)
+    curr_sound=""
+pygame.quit()
+###################################################
