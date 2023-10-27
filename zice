@@ -2,7 +2,7 @@
 import pygame
 import random
 import time
-
+print("Hello")
 #######[ Init ] #########################
 pygame.init()
 width , height = 600 , 600
@@ -12,7 +12,6 @@ mute = True
 ###########################################
 
 #############[Game Intermedietes]#######################
-curr_sound = ""
 ctl_pressed = False
 m_pressed = False
 #####################################
@@ -129,18 +128,22 @@ def change_choice(button_list,background_image) :
 def quit_game() :
     pygame.quit()
 
+def stop_sound():
+    global curr_sound
+    if type(curr_sound) == pygame.mixer.Sound :
+        curr_sound.stop()
+
 def play_sound(audiofile):
     global mute
     global curr_sound
     if mute == False :
-       sound = pygame.mixer.Sound(audiofile)
+       curr_sound = pygame.mixer.Sound(audiofile)
        # Play the sound
-       sound.play()
+       curr_sound.play()
        # Wait for the sound to finish (optional)
-       curr_sound = sound
 def say_hi() :
     hi_list = [ "Hi" , "Hello" , "How are you"  ]
-    random_choice = (random.choice(hi_list))
+    random_choice = (random.choice(hi_list)).replace('\n','')
     print(random_choice)
     play_sound("assets/audio/Sepherina/"+random_choice+".mp3")
 
@@ -231,7 +234,8 @@ def chb_st1_1():
     image1 = pygame.image.load("assets/images/characters/sepharina_edit/Sepharina_holding_napkin_scaled.png")
     #image2 = pygame.image.load("assets/images/characters/sepharina_edit/Sepharina_angry.png")
     current_people.append([image1,200])
-    play_sound("assets/audio/Sepherina/"+text_stage1_2[0]+".mp3")
+    stop_sound()
+    play_sound("assets/audio/Sepherina/Hello, how are you ?.mp3")
     ch_intimacy(1)
 
 buttons_stage1 = [
@@ -251,7 +255,8 @@ text_stage1_2_index= 0
 
 def chb_st1_2() :
     change_choice(buttons_stage1_3,stage1_background)
-    play_sound("assets/audio/Sepherina/"+text_stage1_2[1]+".mp3")
+    stop_sound()
+    play_sound("assets/audio/Sepherina/You don't look very good.mp3")
     ch_intimacy(1)
 
 buttons_stage1_2 = [
@@ -261,7 +266,8 @@ Textbox(450, 200, 100, 200, (100, 100,100), text_stage1_2[0], (0, 0, 0), chb_st1
 
 def chb_st1_3() :
     change_choice(buttons_stage1_4,stage1_background) 
-    play_sound("assets/audio/Sepherina/"+text_stage1_2[2]+".mp3")
+    stop_sound()
+    play_sound("assets/audio/Sepherina/Are you alright ?.mp3")
     ch_intimacy(1)
 
 
@@ -349,11 +355,6 @@ while running :
         button.draw(screen)
     pygame.display.flip()
     pygame.display.update()
-    if mute == False :
-       try :
-           pygame.time.delay(int(curr_sound.get_length() * 1000))
-       except:
-           curr_sound=""
     print("Intimacy is :",Intimacy)
     print("Jealousy is :",Jealousy)
     print("Confidence is :",Confidence)
