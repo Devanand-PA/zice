@@ -1,6 +1,5 @@
 #!/bin/env python3
-#
-zsld lambrj,. admotom/tra`import pygame
+import pygame
 import random
 import time
 
