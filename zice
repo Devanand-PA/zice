@@ -78,13 +78,21 @@ class Button:
 
 
 class Textbox :
-    def __init__(self,x,y,width,height , color , text , text_color , click_action) :
-        self.rect = pygame.Rect(x,y,width,height)
+    def __init__(self,x,y, color , text , text_color , click_action) :
         self.color = color
         self.text = text
+        self.text_lines = text.split("\n")
         self.text_color = text_color
         self.selected = False
         self.click_action = click_action
+        max_in_text = 0
+        self.text_size = 32
+        for i in self.text_lines :
+            if len(i) > max_in_text :
+                max_in_text = len(i)
+        self.width = ( max_in_text* (max_in_text + 5 )) + 20
+        self.height = ( len(self.text_lines)* (self.text_size + 10) ) 
+        self.rect = pygame.Rect(x,y,self.width,self.height)
 
     def draw(self, screen , outline=None):
         if outline :
@@ -96,19 +104,18 @@ class Textbox :
             pygame.draw.rect(screen , (255,255,255) , self.rect)
         
         if self.text:
-            font = pygame.font.Font(None, 32)
+            font = pygame.font.Font(None, self.text_size)
 
             # Split the text into lines
             lines = self.text.split("\n")
-            
-            y_offset = 0
+            y_offset = 10
             for line in lines:
                 text_surface = font.render(line, True, self.text_color)
                 text_rect = text_surface.get_rect()
-                text_rect.centerx = self.rect.centerx
-                text_rect.centery = self.rect.centery + y_offset
+                text_rect.left = self.rect.left + 10
+                text_rect.top = self.rect.top    + y_offset 
                 screen.blit(text_surface, text_rect)
-                y_offset += text_rect.height
+                y_offset += 24
 
 
 class Stage :
@@ -240,16 +247,15 @@ def chb_st1_1():
 
 buttons_stage1 = [
     Button(200, 251, 100, 50, (100, 100,100), "Begin", (0, 0, 0), chb_st1_1),
-    Textbox(100, 200, 300, 50, (255, 255, 255), "Stage 1", (0, 0, 0), blank_function) 
+    Textbox(100, 200, (255, 255, 255), "Stage 1", (0, 0, 0), blank_function) 
     ]
 
 
 blank_buttons = [Button(0,0,0,0,(0,0,0),"",(0,0,0),blank_function)]
 buttons_stage1_1 = [
-Textbox(200, 200, 200, 100, (255, 0, 255), "Custom 2", (0, 0, 0), custom_action),
-Textbox(400, 200, 200, 100, (0, 255, 255), "Exit", (0, 0, 0), quit_game) 
+Textbox(200, 200, (255, 0, 255), "Custom 2", (0, 0, 0), custom_action),
+Textbox(400, 200, (0, 255, 255), "Exit", (0, 0, 0), quit_game) 
     ]
-text_stage1_2 = ["Hello,\n how \n are \nyou ?" , "You \ndon't..\nlook \nvery \ngood" , "Are\n you\n alright ?"]
 text_stage1_2_index= 0
 
 
@@ -260,7 +266,7 @@ def chb_st1_2() :
     ch_intimacy(1)
 
 buttons_stage1_2 = [
-Textbox(450, 200, 100, 200, (100, 100,100), text_stage1_2[0], (0, 0, 0), chb_st1_2),
+Textbox(450, 200,  (100, 100,100), "Hello,\n how \n are \nyou ?", (0, 0, 0), chb_st1_2),
 ]
 
 
@@ -272,7 +278,7 @@ def chb_st1_3() :
 
 
 buttons_stage1_3 = [
-Textbox(450, 200, 100, 300, (100, 100,100), text_stage1_2[1], (0, 0, 0), chb_st1_3),
+Textbox(450, 200,  (100, 100,100), "You\ndon't..\nlook\nvery \ngood", (0, 0, 0), chb_st1_3),
 ]
 
 def chb_st1_4() :
@@ -281,7 +287,7 @@ def chb_st1_4() :
 
 
 buttons_stage1_4 = [
-Textbox(450, 200, 100, 200, (100, 100,100), text_stage1_2[2], (0, 0, 0), chb_st1_4),
+Textbox(450, 200,  (100, 100,100), "Are\nyou\nalright?", (0, 0, 0), chb_st1_4),
 ]
 
 stage1_5_choice = 0
@@ -311,7 +317,7 @@ Button(50, 502, 300, 50, (100, 100,100), "Who are you ?", (0, 0, 0), chb_st1_5_c
 #-------------------------[Stage 1.6a]-------------------------------------
 chb_st1_6_a_1 = lambda : change_choice(buttons_stage1_6a_2, stage1_background)
 buttons_stage1_6a_1 = [
-Textbox(450, 200, 100, 200, (100, 100,100), "Hmm... \n really ?", (0, 0, 0), blank_function),
+Textbox(450, 200, (100, 100,100), "Hmm...\n really?", (0, 0, 0), blank_function),
 ]
 '''
 chb_st1_6_a_2 = lambda : change_choice(buttons_stage1_6a_3, stage1_background)
